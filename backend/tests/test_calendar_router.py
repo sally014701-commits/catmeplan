@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
 
-from app.main import app
 from app.routers.calendar import (
     calendar_callback,
     connect_calendar,
@@ -28,13 +27,6 @@ class CalendarRouterTest(unittest.TestCase):
             "https://accounts.google.com/o/oauth2/v2/auth?client_id=test",
         )
         get_authorization_url.assert_called_once_with()
-
-    def test_calendar_connect_route_is_registered(self) -> None:
-        paths = app.openapi()["paths"]
-
-        self.assertIn("get", paths["/api/calendar/connect"])
-        self.assertIn("get", paths["/api/calendar/callback"])
-        self.assertIn("post", paths["/api/calendar/sync"])
 
     @patch("app.routers.calendar.task_service.process_event")
     @patch("app.routers.calendar.google_calendar.fetch_events")

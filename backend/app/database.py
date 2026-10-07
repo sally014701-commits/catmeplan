@@ -6,8 +6,13 @@ from typing import Iterator
 
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_DATABASE_PATH = BACKEND_DIR / "focusplan.db"
 SCHEMA_PATH = BACKEND_DIR / "schema.sql"
+# Vercel's deployed function filesystem is read-only outside /tmp; fall back
+# there automatically so the app can at least boot (data resets on cold
+# start — this is a demo-only stopgap, not real persistence).
+DEFAULT_DATABASE_PATH = (
+    Path("/tmp/focusplan.db") if os.environ.get("VERCEL") else BACKEND_DIR / "focusplan.db"
+)
 
 
 def database_path() -> Path:
