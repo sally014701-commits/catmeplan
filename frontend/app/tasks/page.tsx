@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import Mallang3D from "@/components/Mallang3D";
+import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import TaskRow from "@/components/TaskRow";
@@ -10,13 +10,12 @@ import { StarGlyph } from "@/components/icons";
 import { rescheduleTask, toggleTaskDone } from "@/lib/api";
 import { buildMonthGrid } from "@/lib/calendar";
 import { dateLabel, formatDuration, formatTimeLabel, isSameDay, monthLabel } from "@/lib/format";
-import { useMallangProfile, useProjects, useTasks } from "@/lib/hooks";
+import { useProjects, useTasks } from "@/lib/hooks";
 
 const WEEKDAY_HEADERS = ["일", "월", "화", "수", "목", "금", "토"];
 type ViewMode = "TO DO" | "TIMELINE" | "PROJECT";
 
 export default function TasksPage() {
-  const { profile } = useMallangProfile();
   const { tasks, setTasks, refresh: refreshTasks } = useTasks();
   const { projects } = useProjects();
   const today = useMemo(() => new Date(), []);
@@ -206,7 +205,7 @@ export default function TasksPage() {
       {view === "TO DO" && (
         <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, padding: "4px 16px 14px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
           <div style={{ display: "flex", gap: 11, alignItems: "center", background: "#FFFFFF", border: "1px solid rgba(89,55,42,.1)", borderRadius: 16, padding: "12px 14px", flex: "none" }}>
-            <Mallang3D size={30} fieldOfView={26} color={profile?.color ?? "original"} />
+            <MallangAvatar size={30} />
             <div style={{ font: "400 13.5px/1.45 'Gowun Dodum'", color: "#59372A" }}>{comment}</div>
           </div>
           {morningTasks.length > 0 && (

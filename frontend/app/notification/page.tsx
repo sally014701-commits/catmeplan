@@ -3,16 +3,15 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-import Mallang3D from "@/components/Mallang3D";
+import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import { VibrationBars } from "@/components/icons";
 import { snoozeTask, toggleTaskDone } from "@/lib/api";
 import { formatTimeLabel } from "@/lib/format";
-import { useMallangProfile, useProjects, useTasks } from "@/lib/hooks";
+import { useProjects, useTasks } from "@/lib/hooks";
 
 export default function NotificationPage() {
   const router = useRouter();
-  const { profile } = useMallangProfile();
   const { tasks, refresh } = useTasks();
   const { projects } = useProjects();
 
@@ -76,7 +75,7 @@ export default function NotificationPage() {
         </div>
       </div>
       <div style={{ padding: "14px 20px 0", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, flex: "none", position: "relative" }}>
-        <Mallang3D size={26} fieldOfView={26} color={profile?.color ?? "original"} />
+        <MallangAvatar size={26} />
         <div style={{ font: "400 12px 'Pretendard'", color: "rgba(89,55,42,.5)", whiteSpace: "nowrap" }}>말랑이가 깨우는 중</div>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 26, padding: "0 26px", position: "relative" }}>

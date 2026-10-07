@@ -2,14 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-import Mallang3D from "@/components/Mallang3D";
+import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { GOAL_MAP_SIZE, layoutGoalMap } from "@/lib/goalLayout";
-import { useGoals, useMallangProfile, useWeeklyStats } from "@/lib/hooks";
+import { useGoals, useWeeklyStats } from "@/lib/hooks";
 
 export default function RecordsPage() {
-  const { profile } = useMallangProfile();
   const { goals } = useGoals();
   const { stats } = useWeeklyStats();
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -122,7 +121,7 @@ export default function RecordsPage() {
 
           {retro && (
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#FFFFFF", border: "1px solid rgba(89,55,42,.1)", borderRadius: 20, padding: 16 }}>
-              <Mallang3D size={40} fieldOfView={26} color={profile?.color ?? "original"} />
+              <MallangAvatar size={40} />
               <div style={{ font: "400 14.5px/1.65 'Gowun Dodum'", color: "#59372A" }}>{retro}</div>
             </div>
           )}

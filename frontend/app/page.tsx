@@ -3,16 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import Mallang3D from "@/components/Mallang3D";
+import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { sendMessage } from "@/lib/api";
 import { greetingLabel, isSameDay } from "@/lib/format";
-import { useMallangProfile, useTasks } from "@/lib/hooks";
+import { useTasks } from "@/lib/hooks";
 
 export default function HomePage() {
   const router = useRouter();
-  const { profile } = useMallangProfile();
   const { tasks } = useTasks();
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -70,13 +69,7 @@ export default function HomePage() {
           >
             잘 잤어? 오늘은 할 일 {todayTaskCount}개야
           </div>
-          <Mallang3D
-            size={300}
-            fieldOfView={34}
-            interactive
-            color={profile?.color ?? "original"}
-            style={{ margin: "0 auto" }}
-          />
+          <MallangAvatar size={300} interactive style={{ margin: "0 auto" }} />
         </div>
       </div>
 

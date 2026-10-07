@@ -2,15 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  getConversation,
-  getProfile,
-  getWeeklyStats,
-  listGoals,
-  listProjects,
-  listTasks,
-  updateProfile,
-} from "./api";
+import { getConversation, getProfile, getWeeklyStats, listGoals, listProjects, listTasks } from "./api";
 import type { ConversationMessage, Goal, MallangProfile, Project, Task, WeeklyStats } from "./types";
 
 export function useMallangProfile() {
@@ -22,12 +14,7 @@ export function useMallangProfile() {
 
   useEffect(refresh, [refresh]);
 
-  const setColor = useCallback((color: MallangProfile["color"]) => {
-    setProfile((current) => (current ? { ...current, color } : current));
-    updateProfile({ color }).then(setProfile).catch(refresh);
-  }, [refresh]);
-
-  return { profile, refresh, setColor };
+  return { profile, refresh };
 }
 
 export function useTasks() {

@@ -1,30 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type DetailedHTMLProps, type HTMLAttributes } from "react";
-
-declare module "react" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "model-viewer": DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {
-        [key: string]: unknown;
-      };
-    }
-  }
-}
-
-export type MallangColor = "original" | "blue" | "cream" | "olive" | "red";
-
-const COLOR_TEXTURE_URL: Record<Exclude<MallangColor, "original">, string> = {
-  blue: "/mallang/mallang-blue.png",
-  cream: "/mallang/mallang-cream.png",
-  olive: "/mallang/mallang-olive.png",
-  red: "/mallang/mallang-red.png",
-};
-
-const MODEL_SRC = "/models/mallang.glb";
-const CAMERA_ORBIT = "0deg 90deg 117%";
-const MIN_ORBIT = "-7deg 86deg 117%";
-const MAX_ORBIT = "7deg 94deg 117%";
+import { useRef, useState } from "react";
 
 type Star = {
   id: string;
@@ -47,96 +23,29 @@ type SpringState = {
   moved: number;
   dirX: number;
   dirY: number;
+  px: number;
+  py: number;
 };
 
 function freshSpring(): SpringState {
-  return { q: 0, v: 0, t: 0, t0: 0, x0: 0, y0: 0, moved: 0, dirX: 0, dirY: 0 };
+  return { q: 0, v: 0, t: 0, t0: 0, x0: 0, y0: 0, moved: 0, dirX: 0, dirY: 0, px: 0, py: 0 };
 }
 
-async function applyColor(mv: any, color: MallangColor, cache: Map<string, any>) {
-  if (!mv?.model) return;
-  const materials: any[] = mv.model.materials ?? [];
-
-  for (const material of materials) {
-    const pbr = material.pbrMetallicRoughness;
-    const tex = pbr?.baseColorTexture;
-    if (!tex) continue;
-
-    if (!("__originalTexture" in material)) {
-      material.__originalTexture = tex.texture ?? null;
-    }
-
-    if (color === "original") {
-      tex.setTexture(material.__originalTexture ?? null);
-      continue;
-    }
-
-    const url = COLOR_TEXTURE_URL[color];
-    let texture = cache.get(url);
-    if (!texture) {
-      texture = await mv.createTexture(url);
-      cache.set(url, texture);
-    }
-    tex.setTexture(texture);
-  }
-}
-
-export default function Mallang3D({
+export default function MallangAvatar({
   size = 64,
-  fieldOfView = 26,
   interactive = false,
-  color = "original",
   className,
   style,
 }: {
   size?: number;
-  fieldOfView?: number;
   interactive?: boolean;
-  color?: MallangColor;
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const squishRef = useRef<HTMLDivElement>(null);
-  const mvRef = useRef<any>(null);
-  const textureCache = useRef<Map<string, any>>(new Map());
   const spring = useRef<SpringState>(freshSpring());
   const rafId = useRef<number | null>(null);
   const [stars, setStars] = useState<Star[]>([]);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    import("@google/model-viewer").then(() => setReady(true));
-  }, []);
-
-  useEffect(() => {
-    const mv = mvRef.current;
-    if (!mv || !ready) return;
-    const onLoad = () => applyColor(mv, color, textureCache.current);
-    if (mv.model) applyColor(mv, color, textureCache.current);
-    mv.addEventListener("load", onLoad);
-    return () => mv.removeEventListener("load", onLoad);
-  }, [ready, color]);
-
-  useEffect(() => {
-    if (!interactive) return;
-    const snapBack = () => {
-      requestAnimationFrame(() => {
-        const mv = mvRef.current;
-        if (!mv) return;
-        mv.cameraOrbit = CAMERA_ORBIT;
-        mv.fieldOfView = `${fieldOfView}deg`;
-        mv.cameraTarget = "auto auto auto";
-      });
-    };
-    window.addEventListener("pointerup", snapBack);
-    window.addEventListener("pointercancel", snapBack);
-    return () => {
-      window.removeEventListener("pointerup", snapBack);
-      window.removeEventListener("pointercancel", snapBack);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-    };
-  }, [interactive, fieldOfView]);
 
   const tick = () => {
     const s = spring.current;
@@ -202,8 +111,8 @@ export default function Mallang3D({
     s.x0 = event.clientX;
     s.y0 = event.clientY;
     s.moved = 0;
-    (s as any).px = event.clientX - rect.left;
-    (s as any).py = event.clientY - rect.top;
+    s.px = event.clientX - rect.left;
+    s.py = event.clientY - rect.top;
     startLoop();
   };
 
@@ -223,7 +132,7 @@ export default function Mallang3D({
       const held = Date.now() - s.t0;
       const hard = s.moved > 10 || held > 260;
       const swipeDeg = s.moved > 10 ? (Math.atan2(s.dirY, s.dirX) * 180) / Math.PI : null;
-      burst((s as any).px, (s as any).py, hard ? 3 : 2, swipeDeg);
+      burst(s.px, s.py, hard ? 3 : 2, swipeDeg);
     }
     s.t = 0;
     s.t0 = 0;
@@ -234,7 +143,6 @@ export default function Mallang3D({
 
   return (
     <div
-      ref={wrapperRef}
       className={className}
       style={{
         position: "relative",
@@ -249,30 +157,14 @@ export default function Mallang3D({
       onPointerUp={handlePointerRelease}
       onPointerLeave={handlePointerRelease}
     >
-      <div
-        ref={squishRef}
-        style={{ width: "100%", height: "100%", transformOrigin: "49.8% 87.8%" }}
-      >
-        {ready && (
-          <model-viewer
-            ref={mvRef as never}
-            src={MODEL_SRC}
-            camera-orbit={CAMERA_ORBIT}
-            field-of-view={`${fieldOfView}deg`}
-            camera-controls="true"
-            touch-action="pan"
-            min-camera-orbit={MIN_ORBIT}
-            max-camera-orbit={MAX_ORBIT}
-            environment-image="neutral"
-            exposure="1.05"
-            shadow-intensity="0"
-            disable-zoom="true"
-            disable-pan="true"
-            disable-tap="true"
-            interaction-prompt="none"
-            style={{ width: "100%", height: "100%", background: "transparent" }}
-          />
-        )}
+      <div ref={squishRef} style={{ width: "100%", height: "100%", transformOrigin: "50% 88%" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/mallang/cat.webp"
+          alt="말랑이"
+          draggable={false}
+          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", userSelect: "none" }}
+        />
       </div>
       {stars.map((star) => (
         <div

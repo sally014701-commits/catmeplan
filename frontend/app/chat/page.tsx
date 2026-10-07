@@ -3,17 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import Mallang3D from "@/components/Mallang3D";
+import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import TaskRow from "@/components/TaskRow";
 import { confirmProjectForTask, sendMessage, toggleTaskDone, rescheduleTask } from "@/lib/api";
 import { dateLabel } from "@/lib/format";
-import { useConversation, useMallangProfile, useProjects, useTasks } from "@/lib/hooks";
+import { useConversation, useProjects, useTasks } from "@/lib/hooks";
 import type { TaskDraftAssignment } from "@/lib/types";
 
 export default function ChatPage() {
   const router = useRouter();
-  const { profile } = useMallangProfile();
   const { messages, refresh: refreshConversation } = useConversation();
   const { tasks, refresh: refreshTasks, setTasks } = useTasks();
   const { projects } = useProjects();
@@ -105,7 +104,7 @@ export default function ChatPage() {
         >
           ↓
         </button>
-        <Mallang3D size={40} fieldOfView={26} color={profile?.color ?? "original"} />
+        <MallangAvatar size={40} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ font: "600 17px/1.2 'Pretendard'", color: "#59372A" }}>말랑이</div>
           <div style={{ font: "400 12px/1.4 'Pretendard'", color: "#8C1822", marginTop: 2, whiteSpace: "nowrap" }}>
@@ -140,7 +139,7 @@ export default function ChatPage() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ display: "flex", gap: 9, alignItems: "flex-end" }}>
-                    <Mallang3D size={28} fieldOfView={26} color={profile?.color ?? "original"} />
+                    <MallangAvatar size={28} />
                     <div style={{ maxWidth: "80%", background: "#FFFFFF", border: "1px solid rgba(89,55,42,.1)", padding: "12px 15px", borderRadius: "20px 20px 20px 6px", font: "400 15px/1.55 'Gowun Dodum'", color: "#59372A" }}>
                       {message.text}
                     </div>
