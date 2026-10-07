@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, urlparse
 
-from backend.app.integrations.google_calendar import (
+from app.integrations.google_calendar import (
     exchange_code_for_token,
     fetch_events,
     get_token,
@@ -53,7 +53,7 @@ class ExchangeCodeForTokenTest(unittest.TestCase):
         "GOOGLE_REDIRECT_URI": "http://localhost:8001/api/google/callback",
     }
 
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_exchanges_code_and_returns_required_tokens(self, urlopen: MagicMock) -> None:
         response = MagicMock()
         response.read.return_value = (
@@ -86,7 +86,7 @@ class ExchangeCodeForTokenTest(unittest.TestCase):
             },
         )
 
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_rejects_response_without_refresh_token(self, urlopen: MagicMock) -> None:
         response = MagicMock()
         response.read.return_value = b'{"access_token":"access","expires_in":3600}'
@@ -96,7 +96,7 @@ class ExchangeCodeForTokenTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "refresh_token"):
                 exchange_code_for_token("authorization-code")
 
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_raises_clear_error_for_http_failure(self, urlopen: MagicMock) -> None:
         urlopen.side_effect = HTTPError(
             "https://oauth2.googleapis.com/token", 400, "Bad Request", {}, None
@@ -106,7 +106,7 @@ class ExchangeCodeForTokenTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "HTTP 400"):
                 exchange_code_for_token("invalid-code")
 
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_raises_clear_error_for_network_failure(self, urlopen: MagicMock) -> None:
         urlopen.side_effect = URLError("connection failed")
 
@@ -164,7 +164,7 @@ class CalendarTokenStorageTest(unittest.TestCase):
 
 
 class FetchEventsTest(unittest.TestCase):
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_fetches_and_normalizes_calendar_events(
         self, urlopen: MagicMock
     ) -> None:
@@ -245,7 +245,7 @@ class FetchEventsTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Google Calendar not connected"):
             fetch_events(host, "2026-08-12", "2026-08-19")
 
-    @patch("backend.app.integrations.google_calendar.urlopen")
+    @patch("app.integrations.google_calendar.urlopen")
     def test_refreshes_expired_access_token_and_preserves_refresh_token(
         self, urlopen: MagicMock
     ) -> None:

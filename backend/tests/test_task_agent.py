@@ -9,15 +9,15 @@ from unittest.mock import Mock, patch
 
 from google.genai import errors
 
-from backend.app.agents.task_agent import (
+from app.agents.task_agent import (
     answer_query,
     decompose,
     parse_llm_json,
     process_message,
 )
-from backend.app.database import initialize_database
-from backend.app.schemas.task import TaskResponse
-from backend.app.services.task_service import list_tasks
+from app.database import initialize_database
+from app.schemas.task import TaskResponse
+from app.services.task_service import list_tasks
 
 
 class ParseLlmJsonTest(unittest.TestCase):
@@ -30,7 +30,7 @@ class ParseLlmJsonTest(unittest.TestCase):
         raw = "not valid json"
 
         with self.assertLogs(
-            "backend.app.agents.task_agent", level=logging.ERROR
+            "app.agents.task_agent", level=logging.ERROR
         ) as logs:
             with self.assertRaises(json.JSONDecodeError):
                 parse_llm_json(raw)
@@ -39,7 +39,7 @@ class ParseLlmJsonTest(unittest.TestCase):
 
 
 class DecomposeTest(unittest.TestCase):
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_uses_gemini_model_and_today_in_prompt(self, client_class: Mock) -> None:
         client = client_class.return_value
         client.models.generate_content.return_value.text = (
@@ -58,7 +58,7 @@ class DecomposeTest(unittest.TestCase):
         self.assertIn("정보를 물어보는 질문인지 판단", call.kwargs["contents"])
         client.close.assert_called_once_with()
 
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_falls_back_when_requested_model_is_unavailable(
         self, client_class: Mock
     ) -> None:
@@ -82,7 +82,7 @@ class DecomposeTest(unittest.TestCase):
         self.assertEqual(models, ["gemini-3.5-flash", "gemini-3.1-flash-lite"])
         self.assertEqual(result["tasks"][0]["content"], "회의 준비")
 
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_falls_back_when_model_is_temporarily_overloaded(
         self, client_class: Mock
     ) -> None:
@@ -109,7 +109,7 @@ class DecomposeTest(unittest.TestCase):
         )
         self.assertEqual(result["tasks"][0]["content"], "자료 정리")
 
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_falls_back_when_model_quota_is_exhausted(
         self, client_class: Mock
     ) -> None:
@@ -133,7 +133,7 @@ class DecomposeTest(unittest.TestCase):
         self.assertEqual(models, ["gemini-3.5-flash", "gemini-3.1-flash-lite"])
         self.assertEqual(result["tasks"][0]["content"], "필라테스 등록")
 
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_returns_query_intent_with_empty_tasks(self, client_class: Mock) -> None:
         client = client_class.return_value
         client.models.generate_content.return_value.text = (
@@ -147,8 +147,8 @@ class DecomposeTest(unittest.TestCase):
 
 
 class ProcessMessageTest(unittest.TestCase):
-    @patch("backend.app.agents.project_agent.assign_project")
-    @patch("backend.app.agents.task_agent.decompose")
+    @patch("app.agents.project_agent.assign_project")
+    @patch("app.agents.task_agent.decompose")
     def test_persists_multiple_tasks_and_returns_database_rows(
         self,
         decompose_mock: Mock,
@@ -196,8 +196,8 @@ class ProcessMessageTest(unittest.TestCase):
         )
         self.assertTrue(all(item["type"] == "task_created" for item in result))
 
-    @patch("backend.app.agents.task_agent.answer_query")
-    @patch("backend.app.agents.task_agent.decompose")
+    @patch("app.agents.task_agent.answer_query")
+    @patch("app.agents.task_agent.decompose")
     def test_routes_query_intent_to_answer_query(
         self, decompose_mock: Mock, answer_query_mock: Mock
     ) -> None:
@@ -218,7 +218,7 @@ class ProcessMessageTest(unittest.TestCase):
 
 
 class AnswerQueryTest(unittest.TestCase):
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_answers_once_using_only_supplied_task_fields(
         self, client_class: Mock
     ) -> None:
@@ -255,7 +255,7 @@ class AnswerQueryTest(unittest.TestCase):
         )
         client.close.assert_called_once_with()
 
-    @patch("backend.app.agents.task_agent.genai.Client")
+    @patch("app.agents.task_agent.genai.Client")
     def test_falls_back_when_answer_model_is_unavailable(
         self, client_class: Mock
     ) -> None:

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.agents.project_agent import confirm_match
-from backend.app.agents.task_agent import process_message
-from backend.app.schemas.task import (
+from app.agents.project_agent import confirm_match
+from app.agents.task_agent import process_message
+from app.schemas.task import (
     AnswerResponse,
     AssignmentResult,
     ConfirmProjectRequest,
@@ -13,9 +13,9 @@ from backend.app.schemas.task import (
     TaskResponse,
     TaskUpdate,
 )
-from backend.app.services.message_service import add_message
-from backend.app.services.project_service import create_project
-from backend.app.services.task_service import (
+from app.services.message_service import add_message
+from app.services.project_service import create_project
+from app.services.task_service import (
     create_task,
     get_task,
     list_tasks,

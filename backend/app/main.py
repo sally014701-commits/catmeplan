@@ -4,15 +4,15 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.database import initialize_database
-from backend.app.routers.calendar import router as calendar_router
-from backend.app.routers.conversation import router as conversation_router
-from backend.app.routers.goals import router as goals_router
-from backend.app.routers.profile import router as profile_router
-from backend.app.routers.projects import router as projects_router
-from backend.app.routers.stats import router as stats_router
-from backend.app.routers.tasks import router as tasks_router
-from backend.app.seed import seed_sample_data
+from app.database import initialize_database
+from app.routers.calendar import router as calendar_router
+from app.routers.conversation import router as conversation_router
+from app.routers.goals import router as goals_router
+from app.routers.profile import router as profile_router
+from app.routers.projects import router as projects_router
+from app.routers.stats import router as stats_router
+from app.routers.tasks import router as tasks_router
+from app.seed import seed_sample_data
 
 
 def cors_origins() -> list[str]:

@@ -1,7 +1,7 @@
 from datetime import date
 import uuid
 
-from backend.app.schemas.task import TaskRecord
+from app.schemas.task import TaskRecord
 
 
 def normalize_manual(

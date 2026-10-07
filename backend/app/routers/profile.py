@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from backend.app.schemas.profile import ProfileResponse, ProfileUpdate
-from backend.app.services.profile_service import get_profile, update_profile
+from app.schemas.profile import ProfileResponse, ProfileUpdate
+from app.services.profile_service import get_profile, update_profile
 
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])

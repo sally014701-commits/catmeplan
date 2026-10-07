@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from backend.app.database import connect
+from app.database import connect
 
 
 def _row_to_goal(row) -> dict:

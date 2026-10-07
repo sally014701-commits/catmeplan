@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 import sqlite3
 
-from backend.app.database import connect
-from backend.app.schemas.task import TaskRecord
-from backend.app.services.normalize import normalize_manual
+from app.database import connect
+from app.schemas.task import TaskRecord
+from app.services.normalize import normalize_manual
 
 
 TASK_COLUMNS = (

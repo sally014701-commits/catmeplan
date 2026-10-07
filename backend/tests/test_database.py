@@ -2,8 +2,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from backend.app.database import initialize_database
-from backend.app.services.task_service import (
+from app.database import initialize_database
+from app.services.task_service import (
     create_task,
     get_task_by_external_id,
     list_tasks,

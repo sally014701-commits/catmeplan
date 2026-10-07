@@ -6,9 +6,9 @@ import re
 from google import genai
 from google.genai import types
 
-from backend.app.agents.task_agent import _generate_with_fallback, parse_llm_json
-from backend.app.database import transaction
-from backend.app.services import project_service, task_service
+from app.agents.task_agent import _generate_with_fallback, parse_llm_json
+from app.database import transaction
+from app.services import project_service, task_service
 
 
 def parse_llm_json_cot(raw: str) -> dict:

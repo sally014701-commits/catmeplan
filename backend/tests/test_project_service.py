@@ -5,9 +5,9 @@ import unittest
 
 from pydantic import ValidationError
 
-from backend.app.database import initialize_database
-from backend.app.schemas.project import ProjectCreate, ProjectRecord, ProjectUpdate
-from backend.app.services.project_service import (
+from app.database import initialize_database
+from app.schemas.project import ProjectCreate, ProjectRecord, ProjectUpdate
+from app.services.project_service import (
     create_project,
     delete_project,
     get_project,

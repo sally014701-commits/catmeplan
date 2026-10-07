@@ -3,11 +3,11 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from backend.app.database import initialize_database
-from backend.app.routers.tasks import confirm_task_project
-from backend.app.schemas.task import ConfirmProjectRequest
-from backend.app.services.project_service import get_project
-from backend.app.services.task_service import create_task, get_task
+from app.database import initialize_database
+from app.routers.tasks import confirm_task_project
+from app.schemas.task import ConfirmProjectRequest
+from app.services.project_service import get_project
+from app.services.task_service import create_task, get_task
 
 
 class ConfirmTaskProjectTest(unittest.TestCase):

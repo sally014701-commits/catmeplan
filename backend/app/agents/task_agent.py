@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import errors, types
 
-from backend.app.services.task_service import create_task, get_task, list_tasks
+from app.services.task_service import create_task, get_task, list_tasks
 
 
 logger = logging.getLogger(__name__)
@@ -154,7 +154,7 @@ def answer_query(user_input: str, tasks: list[dict]) -> str:
 
 def process_message(user_input: str) -> list[dict] | dict:
     """Persist decomposed tasks, assign projects, and return DB-backed results."""
-    from backend.app.agents.project_agent import assign_project
+    from app.agents.project_agent import assign_project
 
     decomposition = decompose(user_input)
     if decomposition["intent"] == "query":

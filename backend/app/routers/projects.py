@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.schemas.project import (
+from app.schemas.project import (
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
 )
-from backend.app.services.project_service import (
+from app.services.project_service import (
     create_project,
     delete_project,
     get_project,
     list_projects,
     update_project,
 )
-from backend.app.services.task_service import list_tasks
+from app.services.task_service import list_tasks
 
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])

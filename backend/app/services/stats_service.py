@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from backend.app.services.task_service import list_tasks
+from app.services.task_service import list_tasks
 
 
 WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"]

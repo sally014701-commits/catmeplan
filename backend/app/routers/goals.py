@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
-from backend.app.schemas.goal import GoalCreate, GoalResponse, GoalUpdate
-from backend.app.services.goal_service import create_goal, list_goals, update_goal
+from app.schemas.goal import GoalCreate, GoalResponse, GoalUpdate
+from app.services.goal_service import create_goal, list_goals, update_goal
 
 
 router = APIRouter(prefix="/api/goals", tags=["goals"])

@@ -6,10 +6,10 @@ already has real data in it.
 
 from datetime import date, datetime, time, timedelta
 
-from backend.app.database import connect
-from backend.app.services.goal_service import create_goal
-from backend.app.services.project_service import create_project
-from backend.app.services.task_service import create_task, snooze_task, update_task
+from app.database import connect
+from app.services.goal_service import create_goal
+from app.services.project_service import create_project
+from app.services.task_service import create_task, snooze_task, update_task
 
 
 def _at(day: date, hour: int, minute: int = 0) -> str:

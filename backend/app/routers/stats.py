@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from backend.app.schemas.stats import WeeklyStats
-from backend.app.services.stats_service import weekly_stats
+from app.schemas.stats import WeeklyStats
+from app.services.stats_service import weekly_stats
 
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])

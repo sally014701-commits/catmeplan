@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from backend.app.schemas.message import MessageResponse
-from backend.app.services.message_service import list_messages
+from app.schemas.message import MessageResponse
+from app.services.message_service import list_messages
 
 
 router = APIRouter(prefix="/api/conversation", tags=["conversation"])

@@ -2,7 +2,7 @@ from datetime import date
 import unittest
 import uuid
 
-from backend.app.services.normalize import normalize_manual
+from app.services.normalize import normalize_manual
 
 
 class NormalizeManualTest(unittest.TestCase):

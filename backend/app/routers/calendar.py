@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
 from ap_host import make_host
-from backend.app.integrations import google_calendar
-from backend.app.services import task_service
+from app.integrations import google_calendar
+from app.services import task_service
 
 
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])

@@ -2,7 +2,7 @@ import json
 import sqlite3
 import uuid
 
-from backend.app.database import connect
+from app.database import connect
 
 
 def _row_to_project(row) -> dict:

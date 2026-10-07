@@ -4,18 +4,18 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from backend.app.database import initialize_database
-from backend.app.services.goal_service import create_goal, list_goals, update_goal
-from backend.app.services.message_service import add_message, list_messages
-from backend.app.services.profile_service import get_profile, update_profile
-from backend.app.services.project_service import create_project
-from backend.app.services.stats_service import weekly_stats
-from backend.app.services.task_service import (
+from app.database import initialize_database
+from app.services.goal_service import create_goal, list_goals, update_goal
+from app.services.message_service import add_message, list_messages
+from app.services.profile_service import get_profile, update_profile
+from app.services.project_service import create_project
+from app.services.stats_service import weekly_stats
+from app.services.task_service import (
     create_task,
     snooze_task,
     update_task,
 )
-from backend.app.seed import seed_sample_data
+from app.seed import seed_sample_data
 
 
 class TemporaryDatabaseTestCase(unittest.TestCase):

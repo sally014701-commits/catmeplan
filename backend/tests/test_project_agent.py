@@ -4,15 +4,15 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-from backend.app.agents.project_agent import (
+from app.agents.project_agent import (
     _llm_pick_among,
     _llm_propose_new,
     assign_project,
     parse_llm_json_cot,
 )
-from backend.app.database import initialize_database
-from backend.app.services.project_service import create_project, get_project
-from backend.app.services.task_service import (
+from app.database import initialize_database
+from app.services.project_service import create_project, get_project
+from app.services.task_service import (
     create_task,
     get_task,
     update_task_project_id,
@@ -27,8 +27,8 @@ class ProjectAgentRuleTest(unittest.TestCase):
             "people": ["에릭", "민지"],
         }
 
-    @patch("backend.app.agents.project_agent._confirm_match")
-    @patch("backend.app.agents.project_agent.project_service.list_projects")
+    @patch("app.agents.project_agent._confirm_match")
+    @patch("app.agents.project_agent.project_service.list_projects")
     def test_assigns_the_only_matching_project(
         self,
         list_projects: MagicMock,
@@ -55,8 +55,8 @@ class ProjectAgentRuleTest(unittest.TestCase):
         )
         confirm_match.assert_called_once_with(self.task, "project-1")
 
-    @patch("backend.app.agents.project_agent._llm_propose_new")
-    @patch("backend.app.agents.project_agent.project_service.list_projects")
+    @patch("app.agents.project_agent._llm_propose_new")
+    @patch("app.agents.project_agent.project_service.list_projects")
     def test_no_match_delegates_to_llm_proposal(
         self,
         list_projects: MagicMock,
@@ -75,8 +75,8 @@ class ProjectAgentRuleTest(unittest.TestCase):
         self.assertEqual(assign_project(self.task), propose_new.return_value)
         propose_new.assert_called_once_with(self.task)
 
-    @patch("backend.app.agents.project_agent._confirm_match")
-    @patch("backend.app.agents.project_agent.project_service.list_projects")
+    @patch("app.agents.project_agent._confirm_match")
+    @patch("app.agents.project_agent.project_service.list_projects")
     def test_assigns_project_with_larger_overlap(
         self,
         list_projects: MagicMock,
@@ -103,8 +103,8 @@ class ProjectAgentRuleTest(unittest.TestCase):
         )
         confirm_match.assert_called_once_with(self.task, "project-2")
 
-    @patch("backend.app.agents.project_agent._llm_pick_among")
-    @patch("backend.app.agents.project_agent.project_service.list_projects")
+    @patch("app.agents.project_agent._llm_pick_among")
+    @patch("app.agents.project_agent.project_service.list_projects")
     def test_tie_delegates_to_llm_tiebreak(
         self,
         list_projects: MagicMock,
@@ -128,9 +128,9 @@ class ProjectAgentRuleTest(unittest.TestCase):
             ["project-1", "project-2"],
         )
 
-    @patch("backend.app.agents.project_agent._confirm_match")
-    @patch("backend.app.agents.project_agent._generate_json")
-    @patch("backend.app.agents.project_agent.project_service.get_project")
+    @patch("app.agents.project_agent._confirm_match")
+    @patch("app.agents.project_agent._generate_json")
+    @patch("app.agents.project_agent.project_service.get_project")
     def test_llm_tiebreak_confirms_returned_candidate(
         self,
         get_project: MagicMock,
@@ -235,7 +235,7 @@ class ProjectAgentTransactionTest(unittest.TestCase):
         task = create_task("IR 수정", people=["에릭"])
 
         with patch(
-            "backend.app.agents.project_agent.project_service.update_project",
+            "app.agents.project_agent.project_service.update_project",
             side_effect=RuntimeError("forced project update failure"),
         ):
             with self.assertRaisesRegex(RuntimeError, "forced project update failure"):
@@ -256,7 +256,7 @@ class ProjectAgentTransactionTest(unittest.TestCase):
         task = create_task("새 서비스 소개서 작성", people=[])
 
         with patch(
-            "backend.app.agents.project_agent._llm_propose_new",
+            "app.agents.project_agent._llm_propose_new",
             return_value={
                 "status": "needs_confirm",
                 "suggested_name": "서비스 소개서",

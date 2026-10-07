@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
 
-from backend.app.main import app
-from backend.app.routers.calendar import (
+from app.main import app
+from app.routers.calendar import (
     calendar_callback,
     connect_calendar,
     sync_calendar,
@@ -13,7 +13,7 @@ from backend.app.routers.calendar import (
 
 class CalendarRouterTest(unittest.TestCase):
     @patch(
-        "backend.app.routers.calendar.google_calendar.get_authorization_url",
+        "app.routers.calendar.google_calendar.get_authorization_url",
         return_value="https://accounts.google.com/o/oauth2/v2/auth?client_id=test",
     )
     def test_connect_redirects_to_google_authorization_url(
@@ -36,9 +36,9 @@ class CalendarRouterTest(unittest.TestCase):
         self.assertIn("get", paths["/api/calendar/callback"])
         self.assertIn("post", paths["/api/calendar/sync"])
 
-    @patch("backend.app.routers.calendar.task_service.process_event")
-    @patch("backend.app.routers.calendar.google_calendar.fetch_events")
-    @patch("backend.app.routers.calendar.make_host")
+    @patch("app.routers.calendar.task_service.process_event")
+    @patch("app.routers.calendar.google_calendar.fetch_events")
+    @patch("app.routers.calendar.make_host")
     def test_syncs_calendar_events_and_returns_statistics(
         self,
         make_host: MagicMock,
@@ -69,8 +69,8 @@ class CalendarRouterTest(unittest.TestCase):
         process_event.assert_any_call(events[0], return_created=True)
         process_event.assert_any_call(events[1], return_created=True)
 
-    @patch("backend.app.routers.calendar.google_calendar.fetch_events")
-    @patch("backend.app.routers.calendar.make_host")
+    @patch("app.routers.calendar.google_calendar.fetch_events")
+    @patch("app.routers.calendar.make_host")
     def test_sync_returns_400_when_calendar_is_not_connected(
         self, make_host: MagicMock, fetch_events: MagicMock
     ) -> None:
@@ -82,9 +82,9 @@ class CalendarRouterTest(unittest.TestCase):
         self.assertEqual(caught.exception.status_code, 400)
         self.assertEqual(caught.exception.detail, "Google Calendar not connected")
 
-    @patch("backend.app.routers.calendar.google_calendar.save_token")
-    @patch("backend.app.routers.calendar.make_host")
-    @patch("backend.app.routers.calendar.google_calendar.exchange_code_for_token")
+    @patch("app.routers.calendar.google_calendar.save_token")
+    @patch("app.routers.calendar.make_host")
+    @patch("app.routers.calendar.google_calendar.exchange_code_for_token")
     def test_callback_exchanges_and_saves_token(
         self,
         exchange_code_for_token: MagicMock,
@@ -123,7 +123,7 @@ class CalendarRouterTest(unittest.TestCase):
 
         self.assertEqual(caught.exception.status_code, 400)
 
-    @patch("backend.app.routers.calendar.google_calendar.exchange_code_for_token")
+    @patch("app.routers.calendar.google_calendar.exchange_code_for_token")
     def test_callback_hides_token_exchange_error(
         self,
         exchange_code_for_token: MagicMock,

@@ -18,7 +18,6 @@ def use_project_python() -> None:
 def main() -> None:
     use_project_python()
 
-    import ngrok
     from dotenv import load_dotenv
 
     load_dotenv(ROOT / ".env")
@@ -29,7 +28,7 @@ def main() -> None:
 
     backend_command = [
         str(ROOT / "backend/.venv/bin/uvicorn"),
-        "backend.app.main:app",
+        "app.main:app",
         "--host",
         "0.0.0.0",
         "--port",
@@ -40,7 +39,7 @@ def main() -> None:
 
     backend = subprocess.Popen(
         backend_command,
-        cwd=ROOT,
+        cwd=ROOT / "backend",
         env=env,
     )
     frontend = subprocess.Popen(
@@ -62,6 +61,8 @@ def main() -> None:
 
     forwarder = None
     if os.environ.get("NGROK_AUTHTOKEN"):
+        import ngrok
+
         redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", "")
         domain = os.environ.get("NGROK_DOMAIN") or urlparse(redirect_uri).hostname
         forward_options = {"authtoken_from_env": True}

@@ -1,7 +1,7 @@
 from datetime import date
 import json
 
-from backend.app.database import connect
+from app.database import connect
 
 
 PROFILE_ID = "default"

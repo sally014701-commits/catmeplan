@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import json
 import uuid
 
-from backend.app.database import connect
+from app.database import connect
 
 
 def _row_to_message(row) -> dict:
