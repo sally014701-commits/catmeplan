@@ -1,0 +1,16 @@
+.env
+data/
+__pycache__/
+node_modules/
+.npm/
+.next/
+.venv/
+*.log
+.run.pid
+.platform_admin/
+.ap_mock.json
+.ap_mock.db
+.ap_mock/
+focusplan.db
+.ngrok/
+tsconfig.tsbuildinfo

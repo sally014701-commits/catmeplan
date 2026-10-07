@@ -1,0 +1,14 @@
+{
+  "_README": "이 파일을 프로젝트 루트에 .ap_mock.json 으로 복사해 오프라인 개발용 가짜 플랫폼을 설정. role 을 viewer 로 바꿔 권한거부 경로도 테스트하라. .gitignore 권장.",
+  "user": {
+    "id": "dev-user",
+    "email": "dev@local",
+    "google_email": "dev@gmail.com",
+    "project_id": "dev-proj",
+    "role": "owner"
+  },
+  "config": { "APP_TITLE": "내 앱(개발)" },
+  "services": {
+    "ai-staff": { "delegate": { "ok": true, "answer": "(가짜) 직원 시스템 응답" } }
+  }
+}

@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+  color: #59372a;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+@keyframes starPop {
+  0% {
+    transform: translate(0, 0) scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3)) scale(1.05)
+      rotate(calc(var(--rot) * 0.4));
+  }
+  70% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.85), calc(var(--dy) * 0.85)) scale(1)
+      rotate(calc(var(--rot) * 0.8));
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.6) rotate(var(--rot));
+    opacity: 0;
+  }
+}
