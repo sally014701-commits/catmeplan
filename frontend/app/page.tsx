@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import MallangAvatar from "@/components/MallangAvatar";
+import GhostCatScene from "@/components/GhostCatScene";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { sendMessage } from "@/lib/api";
@@ -49,13 +49,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0 }}>
-        <div style={{ position: "relative", width: 300, height: 300 }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0, padding: "0 24px" }}>
+        <div style={{ position: "relative", width: "100%" }}>
           <div
             style={{
               position: "absolute",
-              top: 6,
-              right: -8,
+              top: "6%",
+              right: "8%",
               background: "#FFFFFF",
               border: "1px solid rgba(89,55,42,.1)",
               borderRadius: "18px 18px 18px 5px",
@@ -69,7 +69,7 @@ export default function HomePage() {
           >
             잘 잤어? 오늘은 할 일 {todayTaskCount}개야
           </div>
-          <MallangAvatar size={300} interactive style={{ margin: "0 auto" }} />
+          <GhostCatScene maxWidth={260} interactive style={{ margin: "0 auto" }} />
         </div>
       </div>
 

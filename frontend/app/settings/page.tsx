@@ -1,6 +1,6 @@
 "use client";
 
-import MallangAvatar from "@/components/MallangAvatar";
+import GhostCatScene from "@/components/GhostCatScene";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { useMallangProfile } from "@/lib/hooks";
@@ -14,8 +14,8 @@ export default function SettingsPage() {
       <div style={{ padding: "0 20px 14px", font: "400 13px 'Pretendard'", color: "rgba(89,55,42,.45)", flex: "none" }}>
         같이 지낸 지 {profile?.daysTogether ?? 0}일
       </div>
-      <div style={{ margin: "0 20px", height: 250, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", flex: "none" }}>
-        <MallangAvatar size={250} interactive />
+      <div style={{ margin: "0 20px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", flex: "none" }}>
+        <GhostCatScene maxWidth={220} interactive />
       </div>
       <div style={{ flex: 1, padding: "18px 20px 0", display: "flex", flexDirection: "column", gap: 16, overflow: "hidden" }}>
         <div>
