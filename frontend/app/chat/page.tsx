@@ -69,7 +69,7 @@ export default function ChatPage() {
   }
 
   async function handleConfirmProject(taskId: string) {
-    const name = (draftNames[taskId] ?? "").trim();
+    const name = (draftNames[taskId] ?? drafts[taskId]?.suggestedName ?? "").trim();
     if (!name) return;
     const assignment: TaskDraftAssignment = await confirmProjectForTask(taskId, name);
     if (assignment.status === "matched") {

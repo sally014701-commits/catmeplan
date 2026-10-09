@@ -72,13 +72,15 @@ def decompose(user_input: str) -> dict:
 
     today = date.today().isoformat()
     prompt = f"""오늘 날짜는 {today}입니다.
-먼저 사용자의 자연어 입력이 할 일을 만들어 달라는 요청인지, 정보를 물어보는 질문인지 판단하세요.
-- 할 일을 만들어 달라는 요청이면 intent는 "task"이고, 입력을 실행 가능한 Task들로 분해하세요.
-- 정보를 물어보는 질문이면 intent는 "query"이고, tasks는 빈 배열이어야 합니다.
+먼저 사용자의 자연어 입력이 어떤 의도인지 판단하세요. 세 가지 중 하나입니다.
+- "task": 할 일을 만들어 달라는 요청. 입력을 실행 가능한 Task들로 분해하세요.
+- "query": 자신의 일정·할 일·기록에 대해 묻는 질문 (예: "이번 주 뭐 했어?", "내일 일정 있어?").
+- "chat": 그 외 일반적인 대화 — 잡담, 감정 표현, 안부, 할 일/일정과 무관한 질문 등.
+"query"와 "chat"은 tasks가 빈 배열이어야 합니다.
 상대적 마감일(예: 오늘, 내일, 다음 주 금요일)은 오늘 날짜를 기준으로 계산하여 YYYY-MM-DD로 출력하세요.
 
 반드시 아래 형태의 JSON 객체만 출력하세요.
-{{"intent": "task 또는 query", "tasks": [{{"content": "원문의 해당 표현", "title": "짧은 요약", "due_date": "YYYY-MM-DD 또는 null", "people": ["관련 인물"]}}]}}
+{{"intent": "task 또는 query 또는 chat", "tasks": [{{"content": "원문의 해당 표현", "title": "짧은 요약", "due_date": "YYYY-MM-DD 또는 null", "people": ["관련 인물"]}}]}}
 
 규칙:
 - content는 사용자 원문의 해당 문구를 글자 그대로 복사하고 의역하지 마세요.
@@ -102,13 +104,13 @@ def decompose(user_input: str) -> dict:
     if not response.text:
         raise ValueError("Gemini returned an empty response")
     result = parse_llm_json(response.text, expected_type=dict)
-    if result.get("intent") not in {"task", "query"}:
-        raise ValueError("Gemini response intent must be task or query")
+    if result.get("intent") not in {"task", "query", "chat"}:
+        raise ValueError("Gemini response intent must be task, query, or chat")
     tasks = result.get("tasks")
     if not isinstance(tasks, list) or not all(isinstance(item, dict) for item in tasks):
         raise ValueError("Gemini response tasks must be a JSON array of objects")
-    if result["intent"] == "query" and tasks:
-        raise ValueError("Gemini query response tasks must be empty")
+    if result["intent"] in {"query", "chat"} and tasks:
+        raise ValueError("Gemini query/chat response tasks must be empty")
     return result
 
 
@@ -152,6 +154,32 @@ def answer_query(user_input: str, tasks: list[dict]) -> str:
     return response.text
 
 
+def chat_reply(user_input: str) -> str:
+    """Respond conversationally as 말랑이 to small talk unrelated to tasks."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY is not configured")
+
+    client = genai.Client(api_key=api_key)
+    try:
+        config = types.GenerateContentConfig(
+            system_instruction=(
+                "너는 '말랑이', 사용자와 다정한 반말로 대화하는 말랑말랑한 친구 캐릭터다. "
+                "할 일이나 일정과 상관없는 일반적인 대화, 감정 표현, 안부, 잡담에 짧고 "
+                "따뜻하게 반말로 자연스럽게 반응해라. 모르는 사실을 지어내지 말고, "
+                "사용자의 할 일이나 일정에 대한 구체적인 내용은 언급하지 마라 — 그건 "
+                "다른 기능이 근거를 가지고 따로 답한다."
+            ),
+            temperature=0.6,
+        )
+        response = _generate_with_fallback(client, user_input, config)
+    finally:
+        client.close()
+    if not response.text:
+        raise ValueError("Gemini returned an empty response")
+    return response.text
+
+
 def process_message(user_input: str) -> list[dict] | dict:
     """Persist decomposed tasks, assign projects, and return DB-backed results."""
     from app.agents.project_agent import assign_project
@@ -160,6 +188,8 @@ def process_message(user_input: str) -> list[dict] | dict:
     if decomposition["intent"] == "query":
         tasks = [dict(task) for task in list_tasks()]
         return {"type": "answer", "text": answer_query(user_input, tasks)}
+    if decomposition["intent"] == "chat":
+        return {"type": "answer", "text": chat_reply(user_input)}
 
     results: list[dict] = []
     for item in decomposition["tasks"]:

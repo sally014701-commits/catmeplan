@@ -11,6 +11,7 @@ from google.genai import errors
 
 from app.agents.task_agent import (
     answer_query,
+    chat_reply,
     decompose,
     parse_llm_json,
     process_message,
@@ -55,7 +56,7 @@ class DecomposeTest(unittest.TestCase):
         self.assertIn(date.today().isoformat(), call.kwargs["contents"])
         self.assertEqual(result["intent"], "task")
         self.assertEqual(result["tasks"][0]["content"], "내일까지 보고서 작성")
-        self.assertIn("정보를 물어보는 질문인지 판단", call.kwargs["contents"])
+        self.assertIn("어떤 의도인지 판단", call.kwargs["contents"])
         client.close.assert_called_once_with()
 
     @patch("app.agents.task_agent.genai.Client")
@@ -145,6 +146,29 @@ class DecomposeTest(unittest.TestCase):
 
         self.assertEqual(result, {"intent": "query", "tasks": []})
 
+    @patch("app.agents.task_agent.genai.Client")
+    def test_returns_chat_intent_for_small_talk(self, client_class: Mock) -> None:
+        client = client_class.return_value
+        client.models.generate_content.return_value.text = (
+            '{"intent":"chat","tasks":[]}'
+        )
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
+            result = decompose("오늘 기분이 좀 별로야")
+
+        self.assertEqual(result, {"intent": "chat", "tasks": []})
+
+    @patch("app.agents.task_agent.genai.Client")
+    def test_rejects_chat_intent_with_nonempty_tasks(self, client_class: Mock) -> None:
+        client = client_class.return_value
+        client.models.generate_content.return_value.text = (
+            '{"intent":"chat","tasks":[{"content":"x"}]}'
+        )
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
+            with self.assertRaises(ValueError):
+                decompose("아무 말")
+
 
 class ProcessMessageTest(unittest.TestCase):
     @patch("app.agents.project_agent.assign_project")
@@ -215,6 +239,37 @@ class ProcessMessageTest(unittest.TestCase):
             result, {"type": "answer", "text": "등록된 할 일입니다."}
         )
         answer_query_mock.assert_called_once_with("현재 등록된 할 일이 뭐야?", [])
+
+    @patch("app.agents.task_agent.chat_reply")
+    @patch("app.agents.task_agent.decompose")
+    def test_routes_chat_intent_to_chat_reply(
+        self, decompose_mock: Mock, chat_reply_mock: Mock
+    ) -> None:
+        decompose_mock.return_value = {"intent": "chat", "tasks": []}
+        chat_reply_mock.return_value = "오늘 하루 고생 많았어."
+
+        result = process_message("오늘 너무 피곤해")
+
+        self.assertEqual(
+            result, {"type": "answer", "text": "오늘 하루 고생 많았어."}
+        )
+        chat_reply_mock.assert_called_once_with("오늘 너무 피곤해")
+
+
+class ChatReplyTest(unittest.TestCase):
+    @patch("app.agents.task_agent.genai.Client")
+    def test_sends_user_input_with_mallang_persona(self, client_class: Mock) -> None:
+        client = client_class.return_value
+        client.models.generate_content.return_value.text = "힘든 하루였구나, 고생했어."
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
+            result = chat_reply("오늘 너무 피곤해")
+
+        call = client.models.generate_content.call_args
+        self.assertEqual(call.kwargs["contents"], "오늘 너무 피곤해")
+        self.assertIn("말랑이", call.kwargs["config"].system_instruction)
+        self.assertEqual(result, "힘든 하루였구나, 고생했어.")
+        client.close.assert_called_once_with()
 
 
 class AnswerQueryTest(unittest.TestCase):
