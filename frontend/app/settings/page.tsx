@@ -15,7 +15,7 @@ export default function SettingsPage() {
         같이 지낸 지 {profile?.daysTogether ?? 0}일
       </div>
       <div style={{ margin: "0 20px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", flex: "none" }}>
-        <GhostCatScene maxWidth={220} interactive />
+        <GhostCatScene maxWidth={340} interactive />
       </div>
       <div style={{ flex: 1, padding: "18px 20px 0", display: "flex", flexDirection: "column", gap: 16, overflow: "hidden" }}>
         <div>
