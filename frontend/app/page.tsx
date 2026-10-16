@@ -49,7 +49,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minHeight: 0, padding: "12px 12px 0" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 0, padding: "12px 12px 0" }}>
         <div
           style={{
             flex: "none",
@@ -64,13 +64,7 @@ export default function HomePage() {
         >
           잘 잤어? 오늘은 할 일 {todayTaskCount}개야
         </div>
-        <div style={{ flex: 1, minHeight: 0, width: "100%", display: "flex", justifyContent: "center" }}>
-          <GhostCatScene
-            maxWidth={480}
-            interactive
-            style={{ width: "auto", height: "80%", aspectRatio: "325 / 340", maxWidth: "80%" }}
-          />
-        </div>
+        <GhostCatScene interactive style={{ width: "min(64%, 30vh)", flex: "none" }} />
       </div>
 
       <div
