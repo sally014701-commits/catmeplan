@@ -9,7 +9,7 @@ import TaskRow from "@/components/TaskRow";
 import { StarGlyph } from "@/components/icons";
 import { rescheduleTask, toggleTaskDone } from "@/lib/api";
 import { buildMonthGrid } from "@/lib/calendar";
-import { dateLabel, formatDuration, formatTimeLabel, isSameDay, monthLabel } from "@/lib/format";
+import { dateLabel, formatDuration, formatTimeLabel, hasTime, isSameDay, monthLabel, tasksForDay } from "@/lib/format";
 import { useProjects, useTasks } from "@/lib/hooks";
 
 const WEEKDAY_HEADERS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -35,15 +35,13 @@ export default function TasksPage() {
 
   const grid = buildMonthGrid(monthCursor.getFullYear(), monthCursor.getMonth());
 
-  const dayTasks = useMemo(
-    () =>
-      tasks
-        .filter((task) => task.dueAt && isSameDay(new Date(task.dueAt), selectedDate))
-        .sort((a, b) => (a.dueAt && b.dueAt ? a.dueAt.localeCompare(b.dueAt) : 0)),
-    [tasks, selectedDate],
-  );
-  const morningTasks = dayTasks.filter((task) => !task.dueAt!.includes("T") || new Date(task.dueAt!).getHours() < 12);
-  const afternoonTasks = dayTasks.filter((task) => task.dueAt!.includes("T") && new Date(task.dueAt!).getHours() >= 12);
+  // TO DO is the source: TIMELINE is its timed todos in time order, PROJECT groups all todos by project.
+  const dayTasks = useMemo(() => tasksForDay(tasks, selectedDate, today), [tasks, selectedDate, today]);
+  const timedTasks = dayTasks.filter(hasTime);
+  const untimedTasks = dayTasks.filter((task) => !hasTime(task));
+  const morningTasks = timedTasks.filter((task) => new Date(task.dueAt!).getHours() < 12);
+  const afternoonTasks = timedTasks.filter((task) => new Date(task.dueAt!).getHours() >= 12);
+  const unassignedTasks = tasks.filter((task) => !task.projectId || !projectById.has(task.projectId));
 
   const doneCount = dayTasks.filter((task) => task.done).length;
   const comment =
@@ -208,39 +206,29 @@ export default function TasksPage() {
             <MallangAvatar size={30} />
             <div style={{ font: "400 13.5px/1.45 'Gowun Dodum'", color: "#59372A" }}>{comment}</div>
           </div>
-          {morningTasks.length > 0 && (
-            <div>
-              <div style={{ font: "600 12px 'Pretendard'", color: "rgba(89,55,42,.45)", letterSpacing: ".06em", margin: "0 4px 8px" }}>오전</div>
-              <div style={{ background: "#FAF4E4", borderRadius: 18, overflow: "hidden" }}>
-                {morningTasks.map((task, index) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    project={task.projectId ? projectById.get(task.projectId) : undefined}
-                    divider={index > 0}
-                    onToggleDone={handleToggleDone}
-                    onReschedule={(t, dueAt) => rescheduleTask(t.id, { due_date: dueAt }).then(refreshTasks)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {afternoonTasks.length > 0 && (
-            <div>
-              <div style={{ font: "600 12px 'Pretendard'", color: "rgba(89,55,42,.45)", letterSpacing: ".06em", margin: "0 4px 8px" }}>오후</div>
-              <div style={{ borderRadius: 18, overflow: "hidden" }}>
-                {afternoonTasks.map((task, index) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    project={task.projectId ? projectById.get(task.projectId) : undefined}
-                    divider={index > 0}
-                    onToggleDone={handleToggleDone}
-                    onReschedule={(t, dueAt) => rescheduleTask(t.id, { due_date: dueAt }).then(refreshTasks)}
-                  />
-                ))}
-              </div>
-            </div>
+          {[
+            { label: "오전", items: morningTasks },
+            { label: "오후", items: afternoonTasks },
+            { label: "시간 미정", items: untimedTasks },
+          ].map(
+            (section) =>
+              section.items.length > 0 && (
+                <div key={section.label}>
+                  <div style={{ font: "600 12px 'Pretendard'", color: "rgba(89,55,42,.45)", letterSpacing: ".06em", margin: "0 4px 8px" }}>{section.label}</div>
+                  <div style={{ background: "#FAF4E4", borderRadius: 18, overflow: "hidden" }}>
+                    {section.items.map((task, index) => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        project={task.projectId ? projectById.get(task.projectId) : undefined}
+                        divider={index > 0}
+                        onToggleDone={handleToggleDone}
+                        onReschedule={(t, dueAt) => rescheduleTask(t.id, { due_date: dueAt }).then(refreshTasks)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ),
           )}
         </div>
       )}
@@ -248,10 +236,10 @@ export default function TasksPage() {
       {view === "TIMELINE" && (
         <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, padding: "4px 20px 14px", overflowY: "auto", position: "relative" }}>
           <div style={{ position: "absolute", left: 56, top: 0, bottom: 0, width: 1, background: "rgba(89,55,42,.14)" }} />
-          {dayTasks.length === 0 && (
-            <div style={{ paddingLeft: 44, font: "400 13.5px 'Gowun Dodum'", color: "rgba(89,55,42,.5)" }}>비어 있음 — 오늘은 여유로운 날이야.</div>
+          {timedTasks.length === 0 && (
+            <div style={{ paddingLeft: 44, font: "400 13.5px 'Gowun Dodum'", color: "rgba(89,55,42,.5)" }}>시간이 정해진 할 일이 없어.</div>
           )}
-          {dayTasks.map((task) => (
+          {timedTasks.map((task) => (
             <div key={task.id} style={{ display: "flex", gap: 14, paddingBottom: 14 }}>
               <div style={{ width: 30, flex: "none", font: "400 11px 'Pretendard'", color: "rgba(89,55,42,.45)", paddingTop: 12 }}>
                 {formatTimeLabel(task.dueAt)}
@@ -284,21 +272,30 @@ export default function TasksPage() {
               </div>
             </div>
           ))}
+          {untimedTasks.length > 0 && (
+            <div style={{ paddingLeft: 44, font: "400 12px 'Pretendard'", color: "rgba(89,55,42,.45)" }}>
+              시간 미정 {untimedTasks.length}개는 TO DO에 있어
+            </div>
+          )}
         </div>
       )}
 
       {view === "PROJECT" && (
         <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, padding: "2px 16px 14px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
-          {projects.map((project) => {
-            const projectTasks = tasks.filter((task) => task.projectId === project.id);
-            const progress = project.totalCount ? Math.round((project.doneCount / project.totalCount) * 100) : 0;
+          {[
+            ...projects.map((project) => ({ id: project.id, name: project.name, items: tasks.filter((task) => task.projectId === project.id) })),
+            ...(unassignedTasks.length > 0 ? [{ id: "unassigned", name: "프로젝트 없음", items: unassignedTasks }] : []),
+          ].map((project) => {
+            const projectTasks = project.items;
+            const doneTotal = projectTasks.filter((task) => task.done).length;
+            const progress = projectTasks.length ? Math.round((doneTotal / projectTasks.length) * 100) : 0;
             return (
               <div key={project.id} style={{ background: "#FAF4E4", borderRadius: 18, padding: "14px 15px", flex: "none" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <StarGlyph size={11} />
                   <div style={{ flex: 1, minWidth: 0, font: "600 14.5px 'Pretendard'", color: "#59372A", whiteSpace: "nowrap" }}>{project.name}</div>
                   <div style={{ font: "400 11.5px 'Pretendard'", color: "rgba(89,55,42,.45)", flex: "none" }}>
-                    {project.doneCount}/{project.totalCount}
+                    {doneTotal}/{projectTasks.length}
                   </div>
                 </div>
                 <div style={{ height: 4, borderRadius: 2, background: "rgba(89,55,42,.1)", margin: "9px 0 11px" }}>

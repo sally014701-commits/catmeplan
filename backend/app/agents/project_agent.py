@@ -193,3 +193,36 @@ def assign_project(task: dict) -> dict:
 
     matched = _confirm_match(task, best_projects[0]["id"])
     return {**matched, "matched_by": "rule"}
+
+
+def classify_project_goal(project: dict) -> str | None:
+    """Let Gemini pick which 기록 category (goal) a project belongs to."""
+    from app.services import goal_service
+
+    categories = [
+        {"id": goal["id"], "name": goal["name"]}
+        for goal in goal_service.list_goals()
+        if not goal["is_vision"]
+    ]
+    if not categories:
+        return None
+    task_contents = [
+        task["title"] or task["content"]
+        for task in task_service.list_tasks()
+        if task["project_id"] == project["id"]
+    ]
+    prompt = f"""사용자의 Project가 아래 삶의 큰 분류 중 어디에 속하는지 판단하세요.
+Project 이름과 실제로 하고 있는 할 일들을 근거로, 가장 가까운 분류 하나의 id만 고르세요.
+반드시 JSON 객체만 출력하세요: {{"goal_id": "분류 id"}}
+
+분류:
+{json.dumps(categories, ensure_ascii=False)}
+
+Project 이름: {project["name"]}
+할 일: {json.dumps(task_contents, ensure_ascii=False)}
+"""
+    goal_id = _generate_json(prompt).get("goal_id")
+    if goal_id not in {category["id"] for category in categories}:
+        raise ValueError("Gemini selected a goal outside the categories")
+    project_service.update_project(project["id"], goal_id=goal_id)
+    return goal_id

@@ -3,15 +3,18 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from app.database import initialize_database
 from app.services.goal_service import create_goal, list_goals, update_goal
 from app.services.message_service import add_message, list_messages
 from app.services.profile_service import get_profile, update_profile
-from app.services.project_service import create_project
+from app.routers.goals import get_goals
+from app.services.project_service import create_project, get_project, list_projects
 from app.services.stats_service import weekly_stats
 from app.services.task_service import (
     create_task,
+    list_tasks,
     snooze_task,
     update_task,
 )
@@ -143,7 +146,55 @@ class SeedSampleDataTest(TemporaryDatabaseTestCase):
         seed_sample_data()
         seed_sample_data()
 
-        self.assertEqual(len(list_goals()), 7)
+        self.assertEqual(
+            [goal["name"] for goal in list_goals()],
+            ["여유롭게 사는 사람", "이직", "건강", "커리어", "자기계발", "관계", "생활"],
+        )
+        self.assertEqual(list_tasks(), [])
+        self.assertEqual(list_projects(), [])
+
+
+class GoalsRouterTest(TemporaryDatabaseTestCase):
+    def test_items_count_tasks_of_projects_in_goal(self) -> None:
+        health = create_goal("건강")
+        create_goal("생활")
+        project_id = create_project("필라테스", goal_id=health)
+        done_task = create_task("필라테스 수업", project_id=project_id)
+        update_task(done_task["id"], done=True)
+        create_task("필라테스 등록", project_id=project_id)
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
+            goals = {goal.name: goal for goal in get_goals()}
+
+        self.assertEqual(goals["건강"].items, ["필라테스 1/2"])
+        self.assertEqual(goals["생활"].items, [])
+
+    def test_unassigned_project_is_classified_by_llm(self) -> None:
+        create_goal("건강")
+        career = create_goal("커리어")
+        project_id = create_project("랩 연구")
+        create_task("랩 미팅 준비", project_id=project_id)
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test"}), patch(
+            "app.agents.project_agent._generate_json",
+            return_value={"goal_id": career},
+        ):
+            goals = {goal.name: goal for goal in get_goals()}
+
+        self.assertEqual(get_project(project_id)["goal_id"], career)
+        self.assertEqual(goals["커리어"].items, ["랩 연구 0/1"])
+
+    def test_classification_failure_leaves_project_unassigned(self) -> None:
+        create_goal("건강")
+        project_id = create_project("랩 연구")
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test"}), patch(
+            "app.agents.project_agent._generate_json",
+            return_value={"goal_id": "not-a-goal"},
+        ):
+            get_goals()
+
+        self.assertIsNone(get_project(project_id)["goal_id"])
 
 
 if __name__ == "__main__":

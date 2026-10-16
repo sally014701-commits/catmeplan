@@ -7,7 +7,7 @@ import GhostCatScene from "@/components/GhostCatScene";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { sendMessage } from "@/lib/api";
-import { greetingLabel, isSameDay } from "@/lib/format";
+import { greetingLabel, tasksForDay } from "@/lib/format";
 import { useTasks } from "@/lib/hooks";
 
 export default function HomePage() {
@@ -17,14 +17,10 @@ export default function HomePage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  const todayTaskCount = useMemo(() => {
-    const now = new Date();
-    return tasks.filter((task) => {
-      if (task.done) return false;
-      if (!task.dueAt) return true;
-      return isSameDay(new Date(task.dueAt), now);
-    }).length;
-  }, [tasks]);
+  const todayTaskCount = useMemo(
+    () => tasksForDay(tasks, new Date()).filter((task) => !task.done).length,
+    [tasks],
+  );
 
   async function handleSend(text: string) {
     const trimmed = text.trim();
@@ -93,32 +89,6 @@ export default function HomePage() {
           >
             대화 전체 보기 ↑
           </button>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-          {[
-            { label: "오늘 뭐부터 해?", bg: "#F2E9BB" },
-            { label: "이번 주 한가한 날", bg: "#C9DBF2" },
-          ].map((chip) => (
-            <button
-              key={chip.label}
-              type="button"
-              onClick={() => handleSend(chip.label)}
-              disabled={sending}
-              style={{
-                flex: "none",
-                whiteSpace: "nowrap",
-                font: "400 13px 'Pretendard'",
-                color: "#59372A",
-                background: chip.bg,
-                padding: "9px 14px",
-                borderRadius: 14,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              {chip.label}
-            </button>
-          ))}
         </div>
         {error && (
           <div style={{ font: "400 11.5px 'Pretendard'", color: "#8C1822", marginBottom: 8 }}>
