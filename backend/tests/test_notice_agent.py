@@ -54,10 +54,19 @@ class ImportNoticeTest(TemporaryDatabaseTestCase):
         self.assertEqual([task["due_date"] for task in result["tasks"]], ["2026-11-01"])
         self.assertEqual([project["goal_id"] for project in list_projects()], [health])
 
-    def test_rejects_notice_outside_search_results(self) -> None:
+    def test_retries_with_new_keywords_then_gives_up(self) -> None:
         with patch("app.agents.notice_agent._fetch", side_effect=fake_fetch), patch(
             "app.agents.notice_agent._generate_json",
-            side_effect=[{"keywords": ["헬스장"]}, {"index": 9}],
-        ):
-            with self.assertRaisesRegex(ValueError, "outside the search results"):
+            side_effect=[
+                {"keywords": ["헬스장"]},
+                {"index": None},
+                {"keywords": ["헬스"]},
+                {"index": 9},
+                {"keywords": ["피트니스"]},
+                {"index": None},
+            ],
+        ) as generate:
+            with self.assertRaisesRegex(ValueError, "No matching notice"):
                 import_notice("헬스장")
+
+        self.assertIn('["헬스장", "헬스"]', generate.call_args_list[4].args[0])

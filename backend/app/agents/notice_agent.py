@@ -68,40 +68,52 @@ def read_notice(article_no: str) -> dict:
     }
 
 
+SEARCH_ROUNDS = 3
+
+
 def find_notice(user_request: str) -> dict:
-    keywords = _generate_json(
-        f"""성균관대학교(skku.edu) 공지사항 게시판은 제목으로만 검색됩니다.
+    """Search → pick; when nothing fits, the AI tries new keywords (up to 3 rounds)."""
+    tried: list[str] = []
+    titles: list[str] = []
+    for _ in range(SEARCH_ROUNDS):
+        keywords = _generate_json(
+            f"""성균관대학교(skku.edu) 공지사항 게시판은 제목에 검색어가 그대로 들어 있어야 검색됩니다.
 아래 요청에 맞는 공지를 찾기 위한 제목 검색어를 3~5개 만드세요.
-학교 공지에서 실제로 쓰일 법한 공식 표현(예: 헬스장 → 체력증진센터)도 포함하세요.
+- 검색어는 짧은 단어 하나씩(예: "체력증진센터", "헬스"). 여러 단어를 붙이거나 연도·월을 넣지 마세요.
+- 학교 공지에서 실제로 쓰일 법한 공식 표현(예: 헬스장 → 체력증진센터, 피트니스)을 포함하세요.
+- 이미 시도해서 맞는 공지가 없었던 검색어는 다시 쓰지 마세요: {json.dumps(tried, ensure_ascii=False)}
 반드시 JSON 객체만 출력하세요: {{"keywords": ["검색어"]}}
 
 요청: {user_request}
 """
-    ).get("keywords") or []
+        ).get("keywords") or []
+        keywords = [str(keyword) for keyword in keywords[:5]]
+        tried.extend(keywords)
 
-    with ThreadPoolExecutor() as pool:
-        results = pool.map(search_notices, [str(keyword) for keyword in keywords[:5]])
-    candidates: dict[str, dict] = {}
-    for notices in results:
-        for notice in notices:
-            candidates.setdefault(notice["article_no"], notice)
-    if not candidates:
-        raise ValueError(f"No notices found for keywords: {keywords}")
+        with ThreadPoolExecutor() as pool:
+            results = pool.map(search_notices, keywords)
+        candidates: dict[str, dict] = {}
+        for notices in results:
+            for notice in notices:
+                candidates.setdefault(notice["article_no"], notice)
+        if not candidates:
+            continue
 
-    titles = [f"{notice['title']} (게시일 {notice['posted']})" for notice in candidates.values()]
-    index = _generate_json(
-        f"""오늘은 {date.today().isoformat()}입니다.
-아래 공지 목록 중 요청에 가장 맞는 공지 하나를 고르고 그 순번(0부터)을 답하세요.
+        titles = [f"{notice['title']} (게시일 {notice['posted']})" for notice in candidates.values()]
+        index = _generate_json(
+            f"""오늘은 {date.today().isoformat()}입니다.
+아래 공지 목록 중 요청에 맞는 공지 하나를 고르고 그 순번(0부터)을 답하세요.
 요청에 연도·월이 있으면 게시일과 제목의 연도·월이 맞는 공지를 고르세요. 없으면 가장 최근 공지를 고르세요.
+맞는 공지가 없으면 index를 null로 답하세요.
 반드시 JSON 객체만 출력하세요: {{"index": 0}}
 
 요청: {user_request}
 공지 목록: {json.dumps(dict(enumerate(titles)), ensure_ascii=False)}
 """
-    ).get("index")
-    if not isinstance(index, int) or not 0 <= index < len(titles):
-        raise ValueError(f"Gemini selected a notice outside the search results: {index} of {titles}")
-    return read_notice(list(candidates)[index])
+        ).get("index")
+        if isinstance(index, int) and 0 <= index < len(titles):
+            return read_notice(list(candidates)[index])
+    raise ValueError(f"No matching notice after trying keywords {tried}; last results: {titles}")
 
 
 def import_notice(user_request: str) -> dict:
