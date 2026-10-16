@@ -49,27 +49,27 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0, padding: "0 24px" }}>
-        <div style={{ position: "relative", width: "100%" }}>
-          <div
-            style={{
-              position: "absolute",
-              top: "6%",
-              right: "8%",
-              background: "#FFFFFF",
-              border: "1px solid rgba(89,55,42,.1)",
-              borderRadius: "18px 18px 18px 5px",
-              padding: "11px 14px",
-              maxWidth: 196,
-              boxShadow: "0 3px 10px rgba(89,55,42,.1)",
-              font: "400 14px/1.5 'Gowun Dodum'",
-              color: "#59372A",
-              zIndex: 2,
-            }}
-          >
-            잘 잤어? 오늘은 할 일 {todayTaskCount}개야
-          </div>
-          <GhostCatScene maxWidth={400} interactive style={{ margin: "0 auto" }} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minHeight: 0, padding: "12px 12px 0" }}>
+        <div
+          style={{
+            flex: "none",
+            background: "#FFFFFF",
+            border: "1px solid rgba(89,55,42,.1)",
+            borderRadius: 18,
+            padding: "11px 14px",
+            boxShadow: "0 3px 10px rgba(89,55,42,.1)",
+            font: "400 14px/1.5 'Gowun Dodum'",
+            color: "#59372A",
+          }}
+        >
+          잘 잤어? 오늘은 할 일 {todayTaskCount}개야
+        </div>
+        <div style={{ flex: 1, minHeight: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+          <GhostCatScene
+            maxWidth={480}
+            interactive
+            style={{ width: "auto", height: "100%", aspectRatio: "325 / 340", maxWidth: "100%" }}
+          />
         </div>
       </div>
 
