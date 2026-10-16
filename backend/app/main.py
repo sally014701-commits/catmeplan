@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import initialize_database
 from app.routers.conversation import router as conversation_router
 from app.routers.goals import router as goals_router
+from app.routers.notices import router as notices_router
 from app.routers.profile import router as profile_router
 from app.routers.projects import router as projects_router
 from app.routers.stats import router as stats_router
@@ -40,6 +41,7 @@ app.add_middleware(
 app.include_router(tasks_router)
 app.include_router(projects_router)
 app.include_router(goals_router)
+app.include_router(notices_router)
 app.include_router(stats_router)
 app.include_router(profile_router)
 app.include_router(conversation_router)
