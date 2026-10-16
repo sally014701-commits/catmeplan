@@ -68,7 +68,7 @@ export default function HomePage() {
           <GhostCatScene
             maxWidth={480}
             interactive
-            style={{ width: "auto", height: "100%", aspectRatio: "325 / 340", maxWidth: "100%" }}
+            style={{ width: "auto", height: "80%", aspectRatio: "325 / 340", maxWidth: "80%" }}
           />
         </div>
       </div>
