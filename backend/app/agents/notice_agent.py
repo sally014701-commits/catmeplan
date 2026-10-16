@@ -5,6 +5,7 @@ the matching notice → read it → Gemini extracts todos + a project name →
 tasks/project are stored → the project is classified into a 기록 category.
 """
 
+from concurrent.futures import ThreadPoolExecutor
 import html
 import json
 import re
@@ -64,24 +65,27 @@ def find_notice(user_request: str) -> dict:
 """
     ).get("keywords") or []
 
+    with ThreadPoolExecutor() as pool:
+        results = pool.map(search_notices, [str(keyword) for keyword in keywords[:5]])
     candidates: dict[str, dict] = {}
-    for keyword in keywords[:5]:
-        for notice in search_notices(str(keyword)):
+    for notices in results:
+        for notice in notices:
             candidates.setdefault(notice["article_no"], notice)
     if not candidates:
         raise ValueError(f"No notices found for keywords: {keywords}")
 
-    article_no = _generate_json(
-        f"""아래 공지 목록 중 요청에 가장 맞는 공지 하나의 article_no를 고르세요.
-반드시 JSON 객체만 출력하세요: {{"article_no": "번호"}}
+    titles = [notice["title"] for notice in candidates.values()]
+    index = _generate_json(
+        f"""아래 공지 제목 목록 중 요청에 가장 맞는 공지 하나를 고르고 그 순번(0부터)을 답하세요.
+반드시 JSON 객체만 출력하세요: {{"index": 0}}
 
 요청: {user_request}
-공지 목록: {json.dumps(list(candidates.values()), ensure_ascii=False)}
+공지 제목 목록: {json.dumps(dict(enumerate(titles)), ensure_ascii=False)}
 """
-    ).get("article_no")
-    if str(article_no) not in candidates:
-        raise ValueError("Gemini selected a notice outside the search results")
-    return read_notice(str(article_no))
+    ).get("index")
+    if not isinstance(index, int) or not 0 <= index < len(titles):
+        raise ValueError(f"Gemini selected a notice outside the search results: {index} of {titles}")
+    return read_notice(list(candidates)[index])
 
 
 def import_notice(user_request: str) -> dict:

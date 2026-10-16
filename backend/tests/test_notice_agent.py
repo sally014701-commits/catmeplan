@@ -29,7 +29,7 @@ class ImportNoticeTest(TemporaryDatabaseTestCase):
         create_goal("생활")
         replies = [
             {"keywords": ["헬스장", "체력증진센터"]},
-            {"article_no": "140568"},
+            {"index": 1},
             {
                 "project_name": "헬스",
                 "tasks": [
@@ -56,7 +56,7 @@ class ImportNoticeTest(TemporaryDatabaseTestCase):
     def test_rejects_notice_outside_search_results(self) -> None:
         with patch("app.agents.notice_agent._fetch", side_effect=fake_fetch), patch(
             "app.agents.notice_agent._generate_json",
-            side_effect=[{"keywords": ["헬스장"]}, {"article_no": "999"}],
+            side_effect=[{"keywords": ["헬스장"]}, {"index": 9}],
         ):
             with self.assertRaisesRegex(ValueError, "outside the search results"):
                 import_notice("헬스장")
