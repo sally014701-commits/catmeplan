@@ -6,6 +6,7 @@ tasks/project are stored → the project is classified into a 기록 category.
 """
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import date
 import html
 import json
 import re
@@ -34,12 +35,25 @@ def _text(fragment: str) -> str:
 
 def search_notices(keyword: str) -> list[dict]:
     page = _fetch({"mode": "list", "srSearchKey": "article_title", "srSearchVal": keyword})
-    links = re.findall(
-        r'<a href="\?mode=view&amp;articleNo=(\d+)[^"]*" title="자세히 보기">(.*?)</a>',
-        page,
-        re.DOTALL,
+    links = list(
+        re.finditer(
+            r'<a href="\?mode=view&amp;articleNo=(\d+)[^"]*" title="자세히 보기">(.*?)</a>',
+            page,
+            re.DOTALL,
+        )
     )
-    return [{"article_no": number, "title": " ".join(_text(title).split())} for number, title in links]
+    notices = []
+    for index, link in enumerate(links):
+        until = links[index + 1].start() if index + 1 < len(links) else len(page)
+        posted = re.search(r"\d{4}-\d{2}-\d{2}", page[link.end() : until])
+        notices.append(
+            {
+                "article_no": link.group(1),
+                "title": " ".join(_text(link.group(2)).split()),
+                "posted": posted.group(0) if posted else None,
+            }
+        )
+    return notices
 
 
 def read_notice(article_no: str) -> dict:
@@ -74,13 +88,15 @@ def find_notice(user_request: str) -> dict:
     if not candidates:
         raise ValueError(f"No notices found for keywords: {keywords}")
 
-    titles = [notice["title"] for notice in candidates.values()]
+    titles = [f"{notice['title']} (게시일 {notice['posted']})" for notice in candidates.values()]
     index = _generate_json(
-        f"""아래 공지 제목 목록 중 요청에 가장 맞는 공지 하나를 고르고 그 순번(0부터)을 답하세요.
+        f"""오늘은 {date.today().isoformat()}입니다.
+아래 공지 목록 중 요청에 가장 맞는 공지 하나를 고르고 그 순번(0부터)을 답하세요.
+요청에 연도·월이 있으면 게시일과 제목의 연도·월이 맞는 공지를 고르세요. 없으면 가장 최근 공지를 고르세요.
 반드시 JSON 객체만 출력하세요: {{"index": 0}}
 
 요청: {user_request}
-공지 제목 목록: {json.dumps(dict(enumerate(titles)), ensure_ascii=False)}
+공지 목록: {json.dumps(dict(enumerate(titles)), ensure_ascii=False)}
 """
     ).get("index")
     if not isinstance(index, int) or not 0 <= index < len(titles):
