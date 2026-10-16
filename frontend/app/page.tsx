@@ -64,7 +64,7 @@ export default function HomePage() {
         >
           잘 잤어? 오늘은 할 일 {todayTaskCount}개야
         </div>
-        <GhostCatScene interactive style={{ width: "min(64%, 30vh)", flex: "none" }} />
+        <GhostCatScene interactive style={{ width: "min(64%, 30vh)", flex: "none", top: 32 }} />
       </div>
 
       <div
