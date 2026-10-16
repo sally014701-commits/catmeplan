@@ -9,6 +9,7 @@ from tests.test_mallang_features import TemporaryDatabaseTestCase
 LIST_PAGE = """
 <a href="?mode=view&amp;articleNo=1&amp;x=1" title="자세히 보기">
     자원봉사 모집 </a>
+<li>2026-10-16</li>
 <a href="?mode=view&amp;articleNo=140568&amp;x=1" title="자세히 보기">
     [인사캠] 2026년 11월 체력증진센터 회원모집 안내 </a>
 """
