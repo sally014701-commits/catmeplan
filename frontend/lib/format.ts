@@ -1,3 +1,5 @@
+import type { Task } from "./types";
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function isSameDay(a: Date, b: Date): boolean {
@@ -53,4 +55,15 @@ export function formatTimeLabel(dueAt: string | null, now: Date = new Date()): s
   if (isSameDay(due, now)) return time;
   if (isSameDay(due, tomorrow)) return `내일 ${time}`;
   return `${due.getMonth() + 1}/${due.getDate()} ${time}`;
+}
+
+export function hasTime(task: Task): boolean {
+  return Boolean(task.dueAt && task.dueAt.includes("T"));
+}
+
+/** A day's todos: tasks due that day; undated tasks count as today's. */
+export function tasksForDay(tasks: Task[], day: Date, today: Date = new Date()): Task[] {
+  return tasks
+    .filter((task) => (task.dueAt ? isSameDay(new Date(task.dueAt), day) : isSameDay(day, today)))
+    .sort((a, b) => (!a.dueAt ? 1 : !b.dueAt ? -1 : a.dueAt.localeCompare(b.dueAt)));
 }

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import MallangAvatar from "@/components/MallangAvatar";
 import Screen from "@/components/Screen";
 import TabBar from "@/components/TabBar";
 import { GOAL_MAP_SIZE, layoutGoalMap } from "@/lib/goalLayout";
@@ -14,20 +13,6 @@ export default function RecordsPage() {
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const nodes = useMemo(() => layoutGoalMap(goals, focusId), [goals, focusId]);
-
-  const retro = useMemo(() => {
-    if (!stats || stats.days.every((day) => day.totalCount === 0)) return null;
-    const past = stats.days.filter((day) => new Date(day.date) <= new Date());
-    if (past.length === 0) return null;
-    const best = past.reduce((a, b) => (b.doneCount > a.doneCount ? b : a));
-    const worst = past.reduce((a, b) =>
-      b.totalCount > 0 && b.doneCount / b.totalCount < (a.totalCount ? a.doneCount / a.totalCount : 1) ? b : a,
-    );
-    if (best.label === worst.label || best.doneCount === 0) {
-      return "이번 주는 아직 기록이 적어. 하나씩 차근차근 해보자.";
-    }
-    return `${best.label}요일에 제일 많이 했어. 대신 ${worst.label}요일은 거의 못 했지. 다음 주엔 ${worst.label}요일을 좀 가볍게 잡아볼까?`;
-  }, [stats]);
 
   return (
     <Screen>
@@ -69,7 +54,7 @@ export default function RecordsPage() {
                     {node.goal.name}
                   </div>
                   {on &&
-                    node.goal.items.map((item) => (
+                    (node.goal.items.length ? node.goal.items : ["진행 중인 프로젝트 없음"]).map((item) => (
                       <div key={item} style={{ font: "400 10.5px/1.5 'Pretendard'", color: node.fg, opacity: 0.8, marginTop: 3, textAlign: "center" }}>
                         {item}
                       </div>
@@ -118,13 +103,6 @@ export default function RecordsPage() {
               ))}
             </div>
           </div>
-
-          {retro && (
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#FFFFFF", border: "1px solid rgba(89,55,42,.1)", borderRadius: 20, padding: 16 }}>
-              <MallangAvatar size={40} />
-              <div style={{ font: "400 14.5px/1.65 'Gowun Dodum'", color: "#59372A" }}>{retro}</div>
-            </div>
-          )}
 
           {stats && stats.postponed.length > 0 && (
             <div style={{ background: "#FAF4E4", borderRadius: 20, padding: "16px 18px" }}>
